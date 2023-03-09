@@ -1,6 +1,5 @@
 import json
 import string
-import _json
 
 #File for storing output
 outputFile = open("miRNA.txt", "w")
