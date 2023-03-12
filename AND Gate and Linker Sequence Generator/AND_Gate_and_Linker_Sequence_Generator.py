@@ -1,6 +1,6 @@
 import json
 import string
-import _json
+import textwrap
 
 #File for storing output
 outputFile = open("miRNA.txt", "w")
@@ -32,38 +32,56 @@ def compStrand(rnaStrand):
 def reverse(rnaStrand):
   return rnaStrand[::-1]
 
+def splitString(miRNAInput):
+    storageArray = []
+    miRNAInput = miRNAInput.replace(" ","")
+    n = len(miRNAInput)//3
+    part1 = miRNAInput[:n]
+    part2 = miRNAInput[2*n:]
+    storageArray.append(compStrand(part1))
+    storageArray.append(compStrand(part2))
+    return storageArray
 
 #computes and gate
-def andGateGen(sequenceDict, startIndex):#The way we do it recursively is by asking for a start index as an input, then replace the indexes of the dictionary with index, index+1
-    endIndex = len(sequenceDict)
-    if(startIndex == endIndex -1):
-        print("Done")
-    else:
-        #splitting each miRNA
-        miRNA1, miRNA2 = compStrand(list(sequenceDict.values())[startIndex] [:len(list(sequenceDict.values())[startIndex+1])//3]), compStrand(list(sequenceDict.values())[1] [:len(list(sequenceDict.values())[1])//3])
-        print("length of spliced Strand1: ", len(miRNA1))
-        print("length of spliced Strand2: ", len(miRNA2))
-        outputFile.write(f'\nlength of spliced Strand1: {len(miRNA1)}')
-        outputFile.write(f'\nlength of spliced Strand2: {len(miRNA2)}')
+def andGateGen(sequenceDict):#The way we do it recursively is by asking for a start index as an input, then replace the indexes of the dictionary with index, index+1
+    #endIndex = len(sequenceDict)
+    storageDict = sequenceDict.values()
+    storageArray = []
+    miRNAPartArray = []
 
-        #index is incrimented later to update the andRegion such that its adjacent base doesn't match itself
-        index = 0
+    for element in storageDict:
+        storageArray = splitString(element)
+        miRNAPartArray.append(storageArray[0])
+        miRNAPartArray.append(storageArray[1])
 
-        #this sets the default value of the andRegion to AAAAAA
-        andRegion = andRegions[index] 
+    del miRNAPartArray[0]
+    del miRNAPartArray[len(miRNAPartArray)-1]
 
-        #checking to see if the andRegion borders an identical base and changing it to correct this by incrimenting the index
-        #this only needs to be done twice as in the "worst case scenario", ALL of the below code will run, making the anndRegion different to BOTH of its neighboring bases
-        if (miRNA1[-1] == andRegion[1]):
-            index += 1
+    for element in miRNAPartArray: 
+        if(miRNAPartArray.index(element) % 2==0):
+
+            #index is incrimented later to update the andRegion such that its adjacent base doesn't match itself
+            index = 0
+
+            #this sets the default value of the andRegion to AAAAAA
+            andRegion = andRegions[index]
+
+            miRNA1 = miRNAPartArray[miRNAPartArray.index(element)]
+            miRNA2 = miRNAPartArray[miRNAPartArray.index(element) + 1]
+            #checking to see if the andRegion borders an identical base and changing it to correct this by incrimenting the index
+            #this only needs to be done twice as in the "worst case scenario", ALL of the below code will run, making the anndRegion different to BOTH of its neighboring bases
+            if (miRNA1[-1] == andRegion[1]):
+                index += 1
             andRegion = andRegions[index] 
             if (miRNA2[0] == andRegion[1]):
                 index += 1
                 andRegion = andRegions[index]
-        print(miRNA1 + andRegion + miRNA2)
-        outputFile.write("\n" + miRNA1 + andRegion + miRNA2)
-        andGateGen(miRNADict, startIndex+ 1)
-        return((miRNA1 + andRegion + miRNA2))
+            print(miRNA1 + andRegion + miRNA2)
+        else:
+            continue
+    
+    print("Done")
+#        return((miRNA1 + andRegion + miRNA2))
 
 
 #Ensures correct inputs
@@ -92,5 +110,5 @@ def start():
         else:
             print("Incorrect input")
     json.dump(miRNADict, outputFile)
-    andGateGen(miRNADict, 0)
+    andGateGen(miRNADict)
 start()
