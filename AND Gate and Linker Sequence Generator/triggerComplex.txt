@@ -1,0 +1,12 @@
+# miRNA complex structure in DU+ notation 
+structure complex = U18D8+U6D8+U9D8+U6D8+U18
+
+# base sequences for each RNA strand
+domain a = ACUAGCUAUUUUUUACGCUACC
+domain b = UAGCUAGCAAAAAAUCGAUCAA
+domain c =  GUGAUCGAUGCUGAUCGUAGCUAGU
+domain d =  GGUAGCGUAGCUAGCUAGCUAGCUA
+domain e =  UUGAUCGAUGCUAGCUAGCUAGCUA
+ 
+# mapping RNA strands to the complex
+complex.seq = c a d b e 
