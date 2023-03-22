@@ -1,9 +1,9 @@
-import string
+import string 
 import math as m
-from nupack import *
-import matplotlib.pyplot as plt
+#from nupack import *
+#import matplotlib.pyplot as plt
 
-thsModel = Model(material='rna', celsius=37)
+#thsModel = Model(material='rna', celsius=37)
 
 #File for storing output
 outputFile = open("triggerComplex.txt", "w")
@@ -55,10 +55,10 @@ def splitString(miRNAInput):
     n = round(len(miRNAInput)//3)
     part1 = miRNAInput[:n]
     part2 = miRNAInput[2*n+1:]
-    part3 = miRNAInput[n:2*n+1]#modified
+    part3 = miRNAInput[n:2*n+1]
     storageArray.append(compStrand(part1))
     storageArray.append(compStrand(part2))
-    storageArray.append(part3)#Modified
+    storageArray.append(part3)
     return storageArray
 
 #computes and gate
@@ -67,13 +67,14 @@ def andGateGen(sequenceDict):
     storageArray = []
     miRNAPartArray = []
     global unpairedMiddleArray
-    unpairedMiddleArray = []#modified
- 
+    unpairedMiddleArray = []
+    
+    #Takes each of the thirds and adds the first and last to the miRNA part array (used for designing the and gates) and the middle is used to determine the linker sequence
     for element in storageDict:
         storageArray = splitString(element)
         miRNAPartArray.append(storageArray[0])
         miRNAPartArray.append(storageArray[1])
-        unpairedMiddleArray.append(storageArray[2])#modified
+        unpairedMiddleArray.append(storageArray[2])
 
     #makes sure code runs on the end of 1 strand and the beginning of the other
     del miRNAPartArray[0]
@@ -96,27 +97,43 @@ def andGateGen(sequenceDict):
 
             #checking to see if the andRegion borders an identical base and changing it to correct this by incrimenting the index
             #this only needs to be done twice as in the "worst case scenario", ALL of the below code will run, making the anndRegion different to BOTH of its neighboring bases
-            if (miRNA1[-1] == andRegion[1]):
-                index += 1
-                andRegion = andRegions[index]
-            if (reverse(miRNA2)[0] == andRegion[1]):
-                index += 1
-                andRegion = andRegions[index]
-            if (reverse(miRNA2)[0] and miRNA1[-1] == andRegion[1]):
-                index += 1
-                andRegion = andRegions[index]            
+            #if (miRNA1[-1] == andRegion[1]):
+            #    index += 1
+            #    andRegion = andRegions[index]
+            #if (reverse(miRNA2)[0] == andRegion[1]):
+            #    index += 1
+            #    andRegion = andRegions[index]
+            #if (reverse(miRNA2)[0] and miRNA1[-1] == andRegion[1]):
+            #    index += 1
+            #    andRegion = andRegions[index]            
 
-            #defining a repeating unit for the complex
+            #defining a repeating unit for the complex using DU+ notation.
             duplex1 = "D" + str(len(miRNA1)) + "+"
             complexAnd = "U" + str(len(andRegion))
             duplex2 = "D" + str(len(miRNA2)) + "+"
-            unpairedMiddle = "U" + str(len(unpairedMiddleArray[middleIndex]))#modified
+            unpairedMiddle = "U" + str(len(unpairedMiddleArray[middleIndex]))
 
-            repeatUnit = [duplex1, complexAnd, duplex2, unpairedMiddle]       
+            repeatUnit = [duplex1, complexAnd, duplex2, unpairedMiddle]  
+            
+            andGateDict = {}
+            andGateArray = []
+            for gate in andRegions:
+                if (reverse(miRNA2)[0] and miRNA1[-1] == gate[1]):
+                    #energy = structure_energy(strands = [storageDict[miRNAIndex], f'{compStrand(miRNA1)}{gate}{compStrand(miRNA2)}', storageDict[miRNAIndex]], 
+                    #                         structure = repeatUnit1, model = thsModel)
+                    #energy = structure_energy(strands = [gate, compStrand(gate)], 
+                    #                         structure = "D6+", model = thsModel)
+                    andGateArray.append(gate)
+                    #andGateDict[energy] = gate
+            print(andGateArray)
+            #miRNAIndex +=1
+            andGateArray = sorted(andGateArray)
+            andRegion = andGateArray[0]
+
             andGate = miRNA1 + andRegion + reverse(miRNA2)
 
             strands.append(andGate)
-            middleIndex+=1#modified
+            middleIndex+=1
 
             #adding repeat unit to an empty array
             complexStructure.extend(repeatUnit)
@@ -151,6 +168,7 @@ def start():
     andGateGen(miRNADict)
 start()
 
+#Calculating unpaired start of linker sequence
 unpairedStartLength = len(list(miRNADict.values())[0]) - round((len(list(miRNADict.values())[0])//3))
 
 if (unpairedStartLength % 3 == 2):
@@ -160,6 +178,7 @@ elif (unpairedStartLength % 3 == 1):
 else:
     unpairedStartLength = unpairedStartLength
 
+#Transposing the start codon into DU+ notation
 unpairedStart = "U" + str(unpairedStartLength)
 unpairedEnd = "U" + str(len(list(miRNADict.values())[-1]) - len(miRNA2))
 complexStructure[-1] = unpairedEnd
@@ -178,6 +197,7 @@ domainsUsed = domains[0:len(domainCodes)]
 
 mid = int((len(domainsUsed) + 1)/2)
 
+#Putting all the domains in one array in order
 miRNAs = list(domainsUsed[mid-1:])
 andGates = list(domainsUsed[0:mid-1])
 
@@ -185,6 +205,7 @@ seq.extend(miRNAs)
 
 integer = 0
 
+#Placing elements from andGates between each term in miRNAs
 while (integer < len(andGates)):
     for domain in seq:
         if((seq.index(domain)%2 ==0) and (seq.index(domain) + 1 < len(seq))):
@@ -193,6 +214,7 @@ while (integer < len(andGates)):
         else:
             continue
 
+#Outputting all the information to a text file
 outputFile.write(f'# miRNA complex structure in DU+ notation \nstructure complex = {"".join(complexStructure)}\n')
 outputFile.write(f'\n# base sequences for each RNA strand')
 for code in domainCodes:
@@ -249,6 +271,7 @@ thsStructure = ("U"+ str(toehold) + "D"+ str(thsDuplex) + "(U3D5(U15)U3)U21")
 
 toeholdSwitchSequence = (compStrand(toeholdRegion) + "GGAUUUGCAAAAAAAAGAGGAGAGUAAAAUG" + reverse(toeholdRegion)[0:thsDuplex] + "AACCUGGCGGCAGCGCAAAAG")
 
+#Outputting stuff to the text files.
 outputFile2.write(f'# toehold switch structure in DU+ notation \n')
 outputFile2.write(f'structure toeholdSwitch = ' + thsStructure + '\n')
 outputFile2.write(f'\n# base sequences for each section of the toehold switch \n')
@@ -266,13 +289,10 @@ domainsUsed.append(domains[len(domainsUsed)])
 attributeDict = {}
 strandDict = {}
 
-# strand_n = Strand("ACGUAGCUAGCUAGCAUC", name="n")
-# strand_n = Strand(Sequence, name="")
-
-for strand, letter in zip(strands, domainsUsed):
-    attributeDict[strand] = letter 
-    name = letter 
-    strandDict[Strand(strand, name = name)] = 5e-6
+#for strand, letter in zip(strands, domainsUsed):
+#    attributeDict[strand] = letter 
+#    name = letter 
+#    strandDict[Strand(strand, name = name)] = 5e-6
     
-t1 = Tube(strands = strandDict, complexes = SetSpec(max_size = len(strandDict)), name="t1")
-tube_result = tube_analysis(tubes=[t1], compute=['mfe'], model=thsModel)
+#t1 = Tube(strands = strandDict, complexes = SetSpec(max_size = len(strandDict)), name="t1")
+#tube_result = tube_analysis(tubes=[t1], compute=['mfe'], model=thsModel)
