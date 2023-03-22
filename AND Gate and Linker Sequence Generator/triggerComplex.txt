@@ -2,11 +2,11 @@
 structure complex = U18D8+U6D8+U9D8+U6D8+U18
 
 # base sequences for each RNA strand
-domain a = GCUAGCUAAAAAAAUAGCUCAA
-domain b = GCUAACGAAAAAAACAAAUCAC
-domain c =  GUGACGAUCGAGUAGCGUAGCUAGC
-domain d =  UUGAGCUAGCGGAUCGAUCGUUAGC
-domain e =  GUGAUUUGCAUCGAUCGUACGGAUC
+domain a = AUAGCUAGGGGGGGACAGCUAA
+domain b = GAUCUACUUUUUUUCUAGCUCA
+domain c =  UGAGCUGAUCGAGCUAGCUAGCUAU
+domain d =  UUAGCUGUAGCUAUGCUAGUAGAUC
+domain e =  UGAGCUAGCUGAUGUUUAGAUCGAU
  
 # mapping RNA strands to the complex
 complex.seq = c a d b e 
